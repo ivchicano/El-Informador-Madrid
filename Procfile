@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/madrileta
+worker: target/universal/stage/bin/madrileta
