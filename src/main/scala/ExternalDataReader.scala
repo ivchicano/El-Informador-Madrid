@@ -17,7 +17,6 @@ class ExternalDataReader extends StrictLogging {
   var token: String = null
   var mapApiKey: String = null
   var redisURL: String = null
-  var redisPort: Int = -1
   var creator: Int = -1
 
   try {
@@ -34,11 +33,6 @@ class ExternalDataReader extends StrictLogging {
     redisURL =
       envFromFile.get("REDIS_URL").getOrElse(getFromEnvVars("REDIS_URL"))
     logger.debug("REDIS_URL: " + redisURL)
-    redisPort = envFromFile
-      .get("REDIS_PORT")
-      .getOrElse(getFromEnvVars("REDIS_PORT"))
-      .toInt
-    logger.debug("REDIS_PORT: " + redisPort)
     creator = envFromFile
       .get("CREATOR")
       .getOrElse(getFromEnvVars("CREATOR"))
@@ -54,8 +48,6 @@ class ExternalDataReader extends StrictLogging {
       logger.debug("MAP_KEY: " + mapApiKey)
       redisURL = getFromEnvVars("REDIS_URL")
       logger.debug("REDIS_URL: " + redisURL)
-      redisPort = getFromEnvVars("REDIS_PORT").toInt
-      logger.debug("REDIS_PORT: " + redisPort)
       creator = getFromEnvVars("CREATOR").toInt
       logger.debug("CREATOR: " + creator)
     }

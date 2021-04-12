@@ -17,7 +17,6 @@ You can have a .env file with the following structure:
 BOT_TOKEN=<token>
 MAP_KEY=<OpenWeatherMap api key>
 REDIS_URL=<redis URL>
-REDIS_PORT=<redis port>
 CREATOR=<creator [optional]>
 ```
 
@@ -26,5 +25,4 @@ Or you can set the following environment variables:
 - BOT_TOKEN: Telegram bot token
 - MAP_KEY: OpenWeatherMap api key
 - REDIS_URL: Redis URL
-- REDIS_PORT: Redis port
 - CREATOR: creator [optional]

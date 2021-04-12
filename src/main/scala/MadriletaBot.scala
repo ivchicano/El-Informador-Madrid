@@ -15,6 +15,9 @@ import com.bot4s.telegram.methods.SendMessage
 import com.bot4s.telegram.models.ChatType
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
+import java.net.URI
+import scala.util.Try
+import javax.net.ssl.SSLContext
 
 class MadriletaBot extends TelegramBot with Polling with Commands[Future] {
 
@@ -52,8 +55,13 @@ class MadriletaBot extends TelegramBot with Polling with Commands[Future] {
   }
 
   // Redis connection for saving subscriptions
+  val redisUri = new URI(externalData.redisURL)
   val redis =
-    new RedisClient(externalData.redisURL, externalData.redisPort)
+    new RedisClient(
+      redisUri.getHost(),
+      redisUri.getPort(),
+      secret = Try(redisUri.getUserInfo().split(":", 2).last).toOption)
+
   def subscribe(chatId: Long) = Future {
     redis.set(chatId, 1)
   }
@@ -85,7 +93,9 @@ class MadriletaBot extends TelegramBot with Polling with Commands[Future] {
   onCommand("notificar") { implicit msg =>
     if (
       msg.chat.`type`
-        .equals(ChatType.Private) && msg.from.get.id.equals(externalData.creator)
+        .equals(ChatType.Private) && msg.from.get.id.equals(
+        externalData.creator
+      )
     ) {
       for {
         r <- getWeatherInfo()
@@ -131,6 +141,7 @@ class MadriletaBot extends TelegramBot with Polling with Commands[Future] {
     TimeUnit.SECONDS
   )
   // TODO: Añadir por qué
+  // TODO: Añadir temperatura
 
   override def shutdown() {
     messageRunnerExecutor.shutdown()
