@@ -3,3 +3,4 @@ libraryDependencies += "io.spray" %%  "spray-json" % "1.3.6"
 libraryDependencies ++= Seq(
     "net.debasishg" %% "redisclient" % "3.30"
 )
+enablePlugins(JavaAppPackaging)
