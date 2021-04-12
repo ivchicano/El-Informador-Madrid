@@ -8,10 +8,15 @@ object Main {
 
     val madriletaBot = new MadriletaBot()
     val eol = madriletaBot.run()
-    println("Press [ENTER] to shutdown the bot, it may take a few seconds...")
-    scala.io.StdIn.readLine()
-    madriletaBot.shutdown() // initiate shutdown
-    // Wait for the bot end-of-life
-    Await.result(eol, Duration.Inf)
+    if (
+      !scala.util.Properties
+        .envOrNone("DEBUG").isEmpty
+    ) {
+      println("Press [ENTER] to shutdown the bot, it may take a few seconds...")
+      scala.io.StdIn.readLine()
+      madriletaBot.shutdown() // initiate shutdown
+      // Wait for the bot end-of-life
+      Await.result(eol, Duration.Inf)
+    }
   }
 }
