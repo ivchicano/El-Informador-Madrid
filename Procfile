@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/madrileta -Dhttp.port=${PORT}
+web: target/universal/stage/bin/madrileta
