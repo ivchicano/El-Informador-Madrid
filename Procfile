@@ -1,1 +1,1 @@
-worker: target/universal/stage/bin/madrileta
+web: python madriletabot.py

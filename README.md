@@ -4,25 +4,23 @@ Telegram bot for updating on Madrid weather
 
 <https://t.me/MadriletaBot>
 
-Almost every response is in Spanish, if you want internationalization open an issue to see if there is demand for it
+Almost every response is in Spanish, if you want internationalization open an issue to see if there is demand for it.
 
 ## Authentication
 
 This bot need the telegram bot token, a OpenWeatherMap api key and a redis instance to save user subscriptions.
 Optional: specify the creator id for the "notificar" command.
 
-You can have a .env file with the following structure:
+You have to set the following environment variables:
 
-```text
-BOT_TOKEN=<token>
-MAP_KEY=<OpenWeatherMap api key>
-REDIS_URL=<redis URL>
-CREATOR=<creator [optional]>
+- BOT_TOKEN: Telegram bot token.
+- MAP_KEY: OpenWeatherMap api key.
+- REDIS_URL: Redis URL (like the one given by Heroku).
+- CREATOR: creator id to allow the "notificar" command [optional]
+- WEBHOOK_URL: URL to direct the webhook to. Examples: https://15s43cd72fe.ngrok.io/bot_token, https://appname.heroku.com/bot_token
+- PORT: port for the webhook to listen to. Defaults to 8080.
+
+The bot uses webhook to connect to the telegram API from Heroku. You can use ngrok for developing locally lie this:
+```bash
+ngrok http 8080
 ```
-
-Or you can set the following environment variables:
-
-- BOT_TOKEN: Telegram bot token
-- MAP_KEY: OpenWeatherMap api key
-- REDIS_URL: Redis URL
-- CREATOR: creator [optional]
