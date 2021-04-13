@@ -1,48 +1,60 @@
-# bloop and metals
-.bloop
-.bsp
-.metals
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# scala 3
-.tasty
+# C extensions
+*.so
 
-# vs code
-.vscode
-
-# sbt
-# (may want to keep parts of 'project')
-bin/
-project/*
-!project/build.properties
-!project/plugins.sbt
-target/
+# Distribution / packaging
+.Python
+env/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# eclipse
-build
-.classpath
-.project
-.settings
-.worksheet
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
-# intellij idea
-*.log
-*.iml
-*.ipr
-*.iws
-.idea
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# mac
-.DS_Store
-
-# other?
-.history
-.scala_dependencies
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
 .cache
-.cache-main
+nosetests.xml
+coverage.xml
+*,cover
 
-#general
-*.class
+# Translations
+*.mo
+*.pot
 
-#env
-.env
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+.idea/
