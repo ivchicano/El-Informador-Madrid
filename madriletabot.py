@@ -62,7 +62,9 @@ def notify(update, context):
         send_updates(context, msg)
 
 
-# def temperature(update, context):
+def temperature(update, context):
+    msg = omw_service.get_weather()
+    update.effective_message.reply_text(msg)
 
 
 def error(update, context):
@@ -125,6 +127,7 @@ if __name__ == "__main__":
     dp.add_handler(CommandHandler('subscribirse', subscribe))
     dp.add_handler(CommandHandler('desubscribirse', unsubscribe))
     dp.add_handler(CommandHandler('notificar', notify))
+    dp.add_handler(CommandHandler('temperatura', temperature))
     dp.add_error_handler(error)
 
     # Start the webhook
