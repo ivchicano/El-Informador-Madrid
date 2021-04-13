@@ -63,7 +63,7 @@ def notify(update, context):
 
 
 def temperature(update, context):
-    msg = omw_service.get_weather()
+    msg = omw_service.get_temperature()
     update.effective_message.reply_text(msg)
 
 
