@@ -8,36 +8,11 @@ from omw_service import OMWService
 from weather_conversion import weather_conversions
 from telegram.utils.helpers import mention_html
 from telegram.ext import Updater, CommandHandler
-from telegram.ext import messagequeue as mq
 import sys
 import traceback
 
 
 # TODO: command "quien"
-# TODO: command "temperatura"
-
-
-class MQBot(telegram.bot.Bot):
-    """A subclass of Bot which delegates send method handling to MQ"""
-
-    def __init__(self, *args, is_queued_def=True, mqueue=None, **kwargs):
-        super(MQBot, self).__init__(*args, **kwargs)
-        # below 2 attributes should be provided for decorator usage
-        self._is_messages_queued_default = is_queued_def
-        self._msg_queue = mqueue or mq.MessageQueue()
-
-    def __del__(self):
-        try:
-            self._msg_queue.stop()
-        except:
-            pass
-
-    @mq.queuedmessage
-    def send_message(self, *args, **kwargs):
-        """Wrapped method would accept new `queued` and `isgroup`
-        OPTIONAL arguments"""
-        return super(MQBot, self).send_message(*args, **kwargs)
-
 
 subscription_service = SubscriptionService()
 omw_service = OMWService()
@@ -63,7 +38,7 @@ last_msg = ""
 
 
 def update_weather(context):
-    msg = omw_service.get_weather()
+    msg = omw_service.update_weather()
     global last_msg
     if last_msg != msg:
         last_msg = msg
@@ -85,6 +60,9 @@ def notify(update, context):
     else:
         msg = omw_service.get_weather()
         send_updates(context, msg)
+
+
+# def temperature(update, context):
 
 
 def error(update, context):
@@ -139,9 +117,7 @@ if __name__ == "__main__":
 
     # Add to job queue the repeating task of checking OWM for changes in weather
 
-    job_q = updater.job_queue
-
-    job_q.run_repeating(update_weather, interval=6, first=0)
+    updater.job_queue.run_repeating(update_weather, interval=5, first=0)
 
     dp = updater.dispatcher
     # Add handlers
