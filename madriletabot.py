@@ -11,9 +11,6 @@ from telegram.ext import Updater, CommandHandler
 import sys
 import traceback
 
-
-# TODO: command "quien"
-
 subscription_service = SubscriptionService()
 omw_service = OMWService()
 CREATOR = int(os.environ.get('CREATOR'))
@@ -64,6 +61,17 @@ def notify(update, context):
 
 def temperature(update, context):
     msg = omw_service.get_temperature()
+    update.effective_message.reply_text(msg)
+
+
+def who_asked(update, context):
+    msg = "¿Que quién me ha preguntado? ¿Y tú quién eres no name? Mantente madrileñófobo. Estás mad."
+    update.effective_message.reply_text(msg)
+
+
+def when_in_my_region(update, context):
+    msg = "¿Que cuándo un Informador para tu región? ¿A quién le importa tu región menor recoge patatas? Mantente " \
+          "madrileñófobo. Estás mad. "
     update.effective_message.reply_text(msg)
 
 
@@ -128,6 +136,8 @@ if __name__ == "__main__":
     dp.add_handler(CommandHandler('desubscribirse', unsubscribe))
     dp.add_handler(CommandHandler('notificar', notify))
     dp.add_handler(CommandHandler('temperatura', temperature))
+    dp.add_handler(CommandHandler('quien', who_asked))
+    dp.add_handler(CommandHandler('cuando', when_in_my_region))
     dp.add_error_handler(error)
 
     # Start the webhook
