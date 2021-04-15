@@ -19,6 +19,6 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - shell: bash
-      - env:
-          HEROKU_URL: ${{ secrets.HEROKU_URL }}
-      - run: curl "$HEROKU_URL"
+        env:
+            HEROKU_URL: ${{ secrets.HEROKU_URL }}
+        run: curl "$HEROKU_URL"
