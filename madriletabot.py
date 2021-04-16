@@ -75,6 +75,10 @@ def when_in_my_region(update, context):
     update.effective_message.reply_text(msg)
 
 
+def que_bueno_jose(update, context):
+    update.effective_message.reply_text("que bueno jose")
+
+
 def error(update, context):
     # we want to notify the user of this problem. This will always work, but not notify users if the update is an
     # callback or inline query, or a poll update. In case you want this, keep in mind that sending the message
@@ -119,7 +123,7 @@ if __name__ == "__main__":
 
     # Enable logging
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=logging.DEBUG)
+                        level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     # Set up the Updater
@@ -138,6 +142,7 @@ if __name__ == "__main__":
     dp.add_handler(CommandHandler('temperatura', temperature))
     dp.add_handler(CommandHandler('quien', who_asked))
     dp.add_handler(CommandHandler('cuando', when_in_my_region))
+    dp.add_handler(CommandHandler('jose', que_bueno_jose))
     dp.add_error_handler(error)
 
     # Start the webhook
