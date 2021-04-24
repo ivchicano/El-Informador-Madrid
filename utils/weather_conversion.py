@@ -4,7 +4,7 @@ weather_conversions = {
     "Rain": "Está lloviendo en Madrid",
     "Snow": "Está nevando en Madrid",
     "Clouds": "Está nublao en Madrid",
-    "Clear": "Se está DPM en Madrid",
+    "Clear": "Está clarinete Madrid",
 }
 
 
