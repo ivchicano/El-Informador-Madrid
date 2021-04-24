@@ -1,6 +1,6 @@
 import requests
 import os
-from weather_conversion import weather_conversions, temperature_conversions
+from utils.weather_conversion import weather_conversions, temperature_conversions
 
 
 class OMWService:

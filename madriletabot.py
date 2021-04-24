@@ -3,9 +3,9 @@ import os
 
 import telegram
 
-from subscription_service import SubscriptionService
-from omw_service import OMWService
-from weather_conversion import weather_conversions
+from services.subscription_service import SubscriptionService
+from services.omw_service import OMWService
+from utils.weather_conversion import weather_conversions
 from telegram.utils.helpers import mention_html
 from telegram.ext import Updater, CommandHandler
 import sys
