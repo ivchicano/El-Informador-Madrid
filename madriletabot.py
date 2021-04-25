@@ -1,5 +1,6 @@
 import logging
 import os
+from threading import Lock
 
 import telegram
 
@@ -18,6 +19,7 @@ class MadriletaBot:
         self.omw_service = OMWService()
         self.CREATOR = int(os.environ.get('CREATOR'))
         self.last_msg = ""
+        self.last_msg_lock = Lock()
         # Enable logging
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
@@ -37,8 +39,14 @@ class MadriletaBot:
 
     def update_weather(self, context):
         msg = self.omw_service.update_weather()
-        if self.last_msg != msg:
-            self.last_msg = msg
+        acquired = self.last_msg_lock.acquire(timeout=5)
+        try:
+            if not acquired:
+                raise Exception("Timeout when acquiring last msg lock")
+            if self.last_msg != msg:
+                self.last_msg = msg
+        finally:
+            self.last_msg_lock.release()
             if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
                 self.send_updates(context, self.last_msg)
 
