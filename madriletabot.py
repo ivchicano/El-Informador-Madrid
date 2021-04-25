@@ -44,13 +44,15 @@ class MadriletaBot:
             if not acquired:
                 raise Exception("Timeout when acquiring last msg lock")
             if self.last_msg != msg:
+                self.logger.info("Saving new message. Previous " + self.last_msg + ". New: " + msg)
                 self.last_msg = msg
+                if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
+                    self.send_updates(context, self.last_msg)
         finally:
             self.last_msg_lock.release()
-            if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
-                self.send_updates(context, self.last_msg)
 
     def send_updates(self, context, msg):
+        self.logger.info("Sending notification: " + msg)
         chat_ids = self.subscription_service.get_all_users()
         # TODO: Use a message queue to avoid telegram 429 errors if there are too many messages sent
         for chat_id in chat_ids:
