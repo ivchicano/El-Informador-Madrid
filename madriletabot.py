@@ -4,18 +4,18 @@ from threading import Lock
 
 import telegram
 
-from services.subscription_service import SubscriptionService
 from services.omw_service import OMWService
 from utils.weather_conversion import weather_conversions
 from telegram.utils.helpers import mention_html
 from telegram.ext import Updater, CommandHandler
 import sys
 import traceback
+import re
+from datetime import timedelta
 
 
 class MadriletaBot:
     def __init__(self):
-        self.subscription_service = SubscriptionService()
         self.omw_service = OMWService()
         self.CREATOR = int(os.environ.get('CREATOR'))
         self.last_msg = ""
@@ -24,20 +24,70 @@ class MadriletaBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
         self.logger = logging.getLogger(__name__)
+        # Set these variable to the appropriate values
+        self.TOKEN = os.environ.get('BOT_TOKEN')
+        self.WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
+
+        # Port is given by Heroku
+        self.PORT = int(os.environ.get('PORT', 8080))
+
+        # Set up the Updater
+        self.updater = Updater(self.TOKEN)
+
+        # Add to job queue the repeating task of checking OWM for changes in weather
+        self.updater.job_queue.run_repeating(self.update_weather, interval=5, first=0)
+
+        dp = self.updater.dispatcher
+        # Add handlers
+        dp.add_handler(CommandHandler('tiempo', self.time))
+        dp.add_handler(CommandHandler('subscribirse', self.subscribe))
+        dp.add_handler(CommandHandler('desubscribirse', self.unsubscribe))
+        dp.add_handler(CommandHandler('notificar', self.notify))
+        dp.add_handler(CommandHandler('temperatura', self.temperature))
+        dp.add_handler(CommandHandler('quien', self.who_asked))
+        dp.add_handler(CommandHandler('cuando', self.when_in_my_region))
+        dp.add_handler(CommandHandler('jose', self.que_bueno_jose))
+        dp.add_error_handler(self.error)
 
     def time(self, update, context):
         msg = self.omw_service.get_weather()
         update.effective_message.reply_text(msg)
 
+    def notify_subscriber(self, context):
+        if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
+            self.send_updates(context, self.last_msg)
+
     def subscribe(self, update, context):
-        self.subscription_service.subscribe(update.effective_chat.id)
+        time_arg = " ".join(context.args)
+        regex = re.compile(r'(?P<hours>\d+ ?)?(?P<minutes>\d+ ?)?(?P<seconds>\d+?)?')
+        parts = regex.match(time_arg)
+        if not parts:
+            self.logger.error("ValueError when subscribing. Argument: " + time_arg)
+            update.effective_message.reply_text("El intervalo enviado es incorrecto. Por favor comprueba que el "
+                                                "formato usado es el adecuado (H M S).")
+        parts = parts.groupdict()
+        time_params = {}
+        for (name, param) in parts.items():
+            if param:
+                time_params[name] = int(param)
+        interval = timedelta(**time_params).total_seconds()
+        # If there were jobs pertaining to this user, remove them
+        jobs = context.job_queue.get_jobs_by_name(str(update.effective_chat.id))
+        for job in jobs:
+            job.schedule_removal()
+        context.job_queue.run_repeating(self.notify_subscriber, interval, context=update.message.chat_id,
+                                        name=str(update.effective_chat.id))
         update.effective_message.reply_text("Te has subscrito correctamente.")
+        self.logger.info("Subscribed: " + str(update.effective_chat.id))
 
     def unsubscribe(self, update, context):
-        self.subscription_service.unsubscribe(update.effective_chat.id)
+        jobs = context.job_queue.get_jobs_by_name(str(update.effective_chat.id))
+        for job in jobs:
+            job.schedule_removal()
         update.effective_message.reply_text("Te has desubscrito correctamente.")
+        self.logger.info("Unsubscribed: " + str(update.effective_chat.id))
 
-    def update_weather(self, context):
+    def update_weather(self):
         msg = self.omw_service.update_weather()
         acquired = self.last_msg_lock.acquire(timeout=5)
         try:
@@ -46,17 +96,13 @@ class MadriletaBot:
             if self.last_msg != msg:
                 self.logger.info("Saving new message. Previous " + self.last_msg + ". New: " + msg)
                 self.last_msg = msg
-                if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
-                    self.send_updates(context, self.last_msg)
         finally:
             self.last_msg_lock.release()
 
     def send_updates(self, context, msg):
         self.logger.info("Sending notification: " + msg)
-        chat_ids = self.subscription_service.get_all_users()
         # TODO: Use a message queue to avoid telegram 429 errors if there are too many messages sent
-        for chat_id in chat_ids:
-            context.bot.send_message(chat_id=int(chat_id), text=msg)
+        context.bot.send_message(chat_id=int(context.job.context), text=msg)
 
     def notify(self, update, context):
         if update.effective_user.id != self.CREATOR:
@@ -116,38 +162,12 @@ class MadriletaBot:
         raise
 
     def run(self):
-        # Set these variable to the appropriate values
-        TOKEN = os.environ.get('BOT_TOKEN')
-        WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
-
-        # Port is given by Heroku
-        PORT = int(os.environ.get('PORT', 8080))
-
-        # Set up the Updater
-        updater = Updater(TOKEN)
-
-        # Add to job queue the repeating task of checking OWM for changes in weather
-
-        updater.job_queue.run_repeating(self.update_weather, interval=5, first=0)
-
-        dp = updater.dispatcher
-        # Add handlers
-        dp.add_handler(CommandHandler('tiempo', self.time))
-        dp.add_handler(CommandHandler('subscribirse', self.subscribe))
-        dp.add_handler(CommandHandler('desubscribirse', self.unsubscribe))
-        dp.add_handler(CommandHandler('notificar', self.notify))
-        dp.add_handler(CommandHandler('temperatura', self.temperature))
-        dp.add_handler(CommandHandler('quien', self.who_asked))
-        dp.add_handler(CommandHandler('cuando', self.when_in_my_region))
-        dp.add_handler(CommandHandler('jose', self.que_bueno_jose))
-        dp.add_error_handler(self.error)
-
         # Start the webhook
-        updater.start_webhook(listen="0.0.0.0",
-                              port=PORT,
-                              url_path=TOKEN,
-                              webhook_url=WEBHOOK_URL)
-        updater.idle()
+        self.updater.start_webhook(listen="0.0.0.0",
+                                   port=self.PORT,
+                                   url_path=self.TOKEN,
+                                   webhook_url=self.WEBHOOK_URL)
+        self.updater.idle()
 
 
 if __name__ == "__main__":
