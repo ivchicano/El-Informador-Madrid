@@ -23,6 +23,7 @@ class MadriletaBot:
         # Enable logging
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
+        logging.getLogger('apscheduler').setLevel(logging.WARNING)
         self.logger = logging.getLogger(__name__)
         # Set these variable to the appropriate values
         self.TOKEN = os.environ.get('BOT_TOKEN')
@@ -35,7 +36,7 @@ class MadriletaBot:
         self.updater = Updater(self.TOKEN)
 
         # Add to job queue the repeating task of checking OWM for changes in weather
-        self.updater.job_queue.run_repeating(self.update_weather, interval=5, first=0)
+        self.updater.job_queue.run_repeating(self.update_weather, 5, first=0)
 
         dp = self.updater.dispatcher
         # Add handlers
@@ -87,7 +88,7 @@ class MadriletaBot:
         update.effective_message.reply_text("Te has desubscrito correctamente.")
         self.logger.info("Unsubscribed: " + str(update.effective_chat.id))
 
-    def update_weather(self):
+    def update_weather(self, context):
         msg = self.omw_service.update_weather()
         acquired = self.last_msg_lock.acquire(timeout=5)
         try:
