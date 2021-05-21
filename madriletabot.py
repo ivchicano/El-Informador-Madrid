@@ -76,7 +76,7 @@ class MadriletaBot:
         jobs = context.job_queue.get_jobs_by_name(str(update.effective_chat.id))
         for job in jobs:
             job.schedule_removal()
-        context.job_queue.run_repeating(self.notify_subscriber, interval, context=update.message.chat_id,
+        context.job_queue.run_repeating(self.notify_subscriber, interval, context=update.effective_chat.id,
                                         name=str(update.effective_chat.id))
         update.effective_message.reply_text("Te has subscrito correctamente.")
         self.logger.info("Subscribed: " + str(update.effective_chat.id))
