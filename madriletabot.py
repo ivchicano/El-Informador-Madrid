@@ -136,7 +136,8 @@ class MadriletaBot:
             self.logger.debug("User trying to use notify: %s" % update.effective_user.id)
         else:
             msg = self.omw_service.get_weather()
-            self.send_updates(context, msg)
+            for job in context.job_queue.jobs():
+                context.bot.send_message(chat_id=int(job.context), text=msg)
 
     def temperature(self, update, context):
         msg = self.omw_service.get_temperature()
