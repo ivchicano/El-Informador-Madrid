@@ -15,11 +15,12 @@ You have to set the following environment variables:
 
 - BOT_TOKEN: Telegram bot token.
 - MAP_KEY: OpenWeatherMap api key.
+- REDIS_URL: Redis URL (like the one given by Heroku).
 - CREATOR: creator id to allow the "notificar" command [optional]
 - WEBHOOK_URL: URL to direct the webhook to. Examples: https://15s43cd72fe.ngrok.io/bot_token, https://appname.heroku.com/bot_token
 - PORT: port for the webhook to listen to. Defaults to 8080.
 
-The bot uses webhook to connect to the telegram API from Heroku. You can use ngrok for developing locally lie this:
+The bot uses webhook to connect to the telegram API from Heroku. You can use ngrok for developing locally like this:
 ```bash
 ngrok http 8080
 ```
