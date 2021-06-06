@@ -12,7 +12,7 @@ from telegram.ext import Updater, CommandHandler
 import sys
 import traceback
 import re
-from datetime import timedelta
+from datetime import timedelta, date, datetime
 
 
 class MadriletaBot:
@@ -41,10 +41,10 @@ class MadriletaBot:
         # Add to job queue the repeating task of checking OWM for changes in weather
         self.updater.job_queue.run_repeating(self.update_weather_job, 5, first=0)
 
+        self.cooldowns = {}
+
         for key in self.subscription_service.get_all_users():
-            interval = timedelta(seconds=float(self.subscription_service.get(key)))
-            self.updater.job_queue.run_repeating(self.notify_subscriber, interval, context=int(key),
-                                                 name=str(int(key)))
+            self.cooldowns.update({int(key): date(1970, 1, 1)})
 
         dp = self.updater.dispatcher
         # Add handlers
@@ -62,20 +62,13 @@ class MadriletaBot:
         msg = self.omw_service.get_weather()
         update.effective_message.reply_text(msg)
 
-    def notify_subscriber(self, context):
-        try:
-            if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
-                self.send_updates(context, self.last_msg)
-        except:
-            self.error_job()
-
     def subscribe(self, update, context):
         time_arg = " ".join(context.args)
         regex = re.compile(r'(?P<hours>\d+) (?P<minutes>\d+) (?P<seconds>\d+)')
         parts = regex.match(time_arg)
         if not parts:
             self.logger.error("ValueError when subscribing. Argument: " + time_arg)
-            update.effective_message.reply_text("El intervalo enviado es incorrecto. Por favor comprueba que el "
+            update.effective_message.reply_text("El enfriamiento enviado es incorrecto. Por favor comprueba que el "
                                                 "formato usado es el adecuado (H M S).")
         else:
             parts = parts.groupdict()
@@ -83,21 +76,16 @@ class MadriletaBot:
             for (name, param) in parts.items():
                 if param:
                     time_params[name] = int(param)
-            interval = timedelta(**time_params).total_seconds()
-            if interval <= 0:
-                self.logger.error("Interval lower or 0. Argument: " + time_arg)
+            cooldown = timedelta(**time_params).total_seconds()
+            if cooldown <= 0:
+                self.logger.error("Cooldown lower or 0. Argument: " + time_arg)
                 update.effective_message.reply_text("Por favor introduce un valor mayor que 0.")
             else:
-                # If there were jobs pertaining to this user, remove them
-                jobs = context.job_queue.get_jobs_by_name(str(update.effective_chat.id))
-                for job in jobs:
-                    job.schedule_removal()
-                context.job_queue.run_repeating(self.notify_subscriber, interval, context=update.effective_chat.id,
-                                                name=str(update.effective_chat.id))
+                self.cooldowns.update({int(update.effective_chat.id): date(1970, 1, 1)})
                 # Register in redis
-                self.subscription_service.subscribe(update.effective_chat.id, interval)
+                self.subscription_service.subscribe(update.effective_chat.id, cooldown)
                 update.effective_message.reply_text("Te has subscrito correctamente.")
-                self.logger.info("Subscribed: " + str(update.effective_chat.id) + ", " + str(interval))
+                self.logger.info("Subscribed: " + str(update.effective_chat.id) + ", " + str(cooldown))
 
     def unsubscribe(self, update, context):
         jobs = context.job_queue.get_jobs_by_name(str(update.effective_chat.id))
@@ -122,13 +110,22 @@ class MadriletaBot:
     def update_weather_job(self, context):
         try:
             self.update_weather()
+            if weather_conversions["Clear"] != self.last_msg and weather_conversions["Clouds"] != self.last_msg:
+                self.send_updates(context, self.last_msg)
         except:
             self.error_job()
 
     def send_updates(self, context, msg):
         self.logger.info("Sending notification: " + msg)
         # TODO: Use a message queue to avoid telegram 429 errors if there are too many messages sent
-        context.bot.send_message(chat_id=int(context.job.context), text=msg)
+        for key in self.subscription_service.get_all_users():
+            cooldown = timedelta(seconds=float(self.subscription_service.get(key)))
+            last_sent = self.cooldowns.get(int(key), date(1970, 1, 1))
+            now = datetime.today()
+            if now - last_sent > cooldown:
+                self.logger.info("Sending to: " + str(key))
+                context.bot.send_message(chat_id=int(key), text=msg)
+                self.cooldowns.update({int(key): now})
 
     def notify(self, update, context):
         if update.effective_user.id != self.CREATOR:
@@ -156,6 +153,10 @@ class MadriletaBot:
         update.effective_message.reply_text("que bueno jose")
 
     def error(self, update, context):
+        exc_info = sys.exc_info()
+        self.logger.error(exc_info[0])
+        self.logger.error(exc_info[1])
+        self.logger.error(traceback.format_tb(sys.exc_info()[2]))
         if update is None:
             self.error_job()
         else:
@@ -169,7 +170,7 @@ class MadriletaBot:
             # as the third value of the returned tuple. Then we use the traceback.format_tb to get the traceback as a
             # string, which for a weird reason separates the line breaks in a list, but keeps the linebreaks itself.
             # So just joining an empty string works fine.
-            trace = "".join(traceback.format_tb(sys.exc_info()[2]))
+            trace = "".join(traceback.format_tb(exc_info[2]))
             # lets try to get as much information from the telegram update as possible
             payload = ""
             # normally, we always have an user. If not, its either a channel or a poll update.
