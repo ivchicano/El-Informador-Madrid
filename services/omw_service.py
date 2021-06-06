@@ -15,7 +15,7 @@ class OMWService:
 
     def _make_query(self):
         while self._retries < self._MAX_RETRIES:
-            r = requests.get(self._URL, timeout=10)
+            r = requests.get(self._URL, timeout=4)
             if r.status_code == 200:
                 self._retries = 0
                 r.raise_for_status()
