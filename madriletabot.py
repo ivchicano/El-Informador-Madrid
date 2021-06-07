@@ -157,6 +157,8 @@ class MadriletaBot:
         self.logger.error(exc_info[0])
         self.logger.error(exc_info[1])
         self.logger.error(traceback.format_tb(sys.exc_info()[2]))
+        self.logger.error(context)
+        self.logger.error(update)
         if update is None:
             self.error_job()
         else:
