@@ -197,10 +197,11 @@ class MadriletaBot:
 
     def error_job(self):
         exc_info = sys.exc_info()
-        text = f"Type: <code>{exc_info[0]}</code>\n\n" \
-               f"Value: <code>{exc_info[1]}</code>\n\n" \
-               f"Traceback: <code>{exc_info[2]}</code>"
-        self.updater.bot.send_message(self.CREATOR, text, parse_mode=telegram.ParseMode.HTML)
+        if (exc_info[0] is not None) or (exc_info[1] is not None) or (exc_info[2] is not None):
+            text = f"Type: <code>{exc_info[0]}</code>\n\n" \
+                   f"Value: <code>{exc_info[1]}</code>\n\n" \
+                   f"Traceback: <code>{exc_info[2]}</code>"
+            self.updater.bot.send_message(self.CREATOR, text, parse_mode=telegram.ParseMode.HTML)
 
     def run(self):
         # Start the webhook
