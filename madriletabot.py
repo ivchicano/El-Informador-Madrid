@@ -29,7 +29,6 @@ class MadriletaBot:
         self.logger = logging.getLogger(__name__)
         # Set these variable to the appropriate values
         self.TOKEN = os.environ.get('BOT_TOKEN')
-        self.WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
 
         # Port is given by Heroku
         self.PORT = int(os.environ.get('PORT', 8080))
@@ -206,10 +205,11 @@ class MadriletaBot:
     def run(self):
         # Start the webhook
         if bool(os.environ.get('HEROKU')):
+            WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
             self.updater.start_webhook(listen="0.0.0.0",
                                        port=self.PORT,
                                        url_path=self.TOKEN,
-                                       webhook_url=self.WEBHOOK_URL)
+                                       webhook_url=WEBHOOK_URL)
         else:
             self.updater.start_polling()
         self.updater.idle()
