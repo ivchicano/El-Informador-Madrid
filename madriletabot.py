@@ -204,7 +204,7 @@ class MadriletaBot:
 
     def run(self):
         # Start the webhook
-        if bool(os.environ.get('HEROKU')):
+        if os.environ.get('HEROKU') == 'True':
             WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
             self.updater.start_webhook(listen="0.0.0.0",
                                        port=self.PORT,
