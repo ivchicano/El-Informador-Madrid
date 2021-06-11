@@ -205,10 +205,13 @@ class MadriletaBot:
 
     def run(self):
         # Start the webhook
-        self.updater.start_webhook(listen="0.0.0.0",
-                                   port=self.PORT,
-                                   url_path=self.TOKEN,
-                                   webhook_url=self.WEBHOOK_URL)
+        if bool(os.environ.get('HEROKU')):
+            self.updater.start_webhook(listen="0.0.0.0",
+                                       port=self.PORT,
+                                       url_path=self.TOKEN,
+                                       webhook_url=self.WEBHOOK_URL)
+        else:
+            self.updater.start_polling()
         self.updater.idle()
 
 
