@@ -35,7 +35,6 @@ class SubscriptionService:
             value = self._r_conn.get(key)
             result_dict[chat_name] = int(value)
         self.logger.info(result_dict)
-        for key in sorted(result_dict.items(), key=lambda x: x[1]):
-            self.logger.info(key)
-            result_str = result_str + key + " : " + str(result_dict[key]) + "\n"
+        for item in sorted(result_dict.items(), key=lambda x: x[1]):
+            result_str = result_str + item[0] + " : " + str(item[1]) + "\n"
         return result_str
