@@ -32,6 +32,6 @@ class SubscriptionService:
             chat_name = str(key).split(":")[1]
             value = self._r_conn.get(key)
             result_dict[chat_name] = value
-        for key, value in {k: v for k, v in sorted(result_dict.items(), key=lambda item: item[1])}:
-            result_str = result_str + key + " : " + value + "\n"
+        for key in {k: v for k, v in sorted(result_dict.items(), key=result_dict.get)}:
+            result_str = result_str + key + " : " + result_dict[key] + "\n"
         return result_str
