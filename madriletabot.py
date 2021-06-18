@@ -160,17 +160,17 @@ class MadriletaBot:
     def send_ranking(self, update, context):
         context.bot.send_message(update.effective_chat.id, text=self.subscription_service.get_ranking())
 
-    def update_ranking(self, user_id, points):
-        self.subscription_service.update_ranking(user_id, points)
+    def update_ranking(self, user_name, user_id, points):
+        self.subscription_service.update_ranking(user_name, user_id, points)
 
     def slots(self, update, context):
         result = context.bot.send_dice(update.effective_chat.id,  emoji="🎰",
                                        reply_to_message_id=update.effective_message.message_id)
         if result.dice.value in slot_machine_value:
             converted_results = slot_machine_value[result.dice.value]
-            self.update_ranking(update.effective_user.first_name, converted_results)
+            self.update_ranking(update.effective_user.first_name, update.effective_user.id, converted_results)
         else:
-            self.update_ranking(update.effective_user.first_name, -10)
+            self.update_ranking(update.effective_user.first_name, update.effective_user.id, -10)
 
     def error(self, update, context):
         exc_info = sys.exc_info()

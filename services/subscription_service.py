@@ -20,14 +20,18 @@ class SubscriptionService:
     def get(self, chat_id):
         return self._r_conn.get(chat_id)
 
-    def update_ranking(self, user_id, points):
-        key = "slots:" + str(user_id)
+    def update_ranking(self, user_name, user_id, points):
+        key = "slots:" + str(user_name) + ":" + user_id
         return self._r_conn.incrby(key, points)
 
     def get_ranking(self):
         keys = self._r_conn.keys("slots:*")
         result_str = ""
+        result_dict = {}
         for key in keys:
-            chat_id = str(key[6:])
-            result_str = result_str + chat_id + " : " + self._r_conn.get(key) + "\n"
+            chat_name = str(key).split()[1]
+            value = self._r_conn.get(key)
+            result_dict[chat_name] = value
+        for key, value in sorted(result_dict, key=result_dict.get, reverse=True):
+            result_str = result_str + key + " : " + value + "\n"
         return result_str
