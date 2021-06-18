@@ -33,8 +33,8 @@ class SubscriptionService:
         for key in keys:
             chat_name = str(key).split(":")[1]
             value = self._r_conn.get(key)
-            result_dict[chat_name] = value
+            result_dict[chat_name] = int(value)
         self.logger.info(result_dict)
         for key in sorted(result_dict.items(), key=result_dict.get):
-            result_str = result_str + key + " : " + result_dict[key] + "\n"
+            result_str = result_str + key + " : " + str(result_dict[key]) + "\n"
         return result_str
