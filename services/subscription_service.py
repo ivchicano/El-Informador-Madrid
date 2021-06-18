@@ -4,7 +4,7 @@ import os
 
 class SubscriptionService:
     def __init__(self):
-        self._r_conn = redis.from_url(os.environ.get("REDIS_URL"))
+        self._r_conn = redis.from_url(os.environ.get("REDIS_URL"), charset="utf-8", decode_responses=True)
         # Check connection
         self._r_conn.ping()
 
