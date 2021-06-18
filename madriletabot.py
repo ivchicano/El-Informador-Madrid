@@ -6,6 +6,7 @@ import telegram
 
 from services.omw_service import OMWService
 from services.subscription_service import SubscriptionService
+from utils.slots_machine_value import slot_machine_value
 from utils.weather_conversion import weather_conversions
 from telegram.utils.helpers import mention_html
 from telegram.ext import Updater, CommandHandler
@@ -43,7 +44,8 @@ class MadriletaBot:
         self.cooldowns = {}
 
         for key in self.subscription_service.get_all_users():
-            self.cooldowns.update({int(key): date(1970, 1, 1)})
+            chat_id = int(str(key)[4:])
+            self.cooldowns.update({chat_id: date(1970, 1, 1)})
 
         dp = self.updater.dispatcher
         # Add handlers
@@ -56,6 +58,7 @@ class MadriletaBot:
         dp.add_handler(CommandHandler('cuando', self.when_in_my_region))
         dp.add_handler(CommandHandler('jose', self.que_bueno_jose))
         dp.add_handler(CommandHandler('slots', self.slots))
+        dp.add_handler(CommandHandler('ranking', self.send_ranking))
         dp.add_error_handler(self.error)
 
     def time(self, update, context):
@@ -119,13 +122,14 @@ class MadriletaBot:
         self.logger.info("Sending notification: " + msg)
         # TODO: Use a message queue to avoid telegram 429 errors if there are too many messages sent
         for key in self.subscription_service.get_all_users():
+            chat_id = int(str(key)[4:])
             cooldown = timedelta(seconds=float(self.subscription_service.get(key)))
-            last_sent = self.cooldowns.get(int(key), date(1970, 1, 1))
+            last_sent = self.cooldowns.get(chat_id, date(1970, 1, 1))
             now = datetime.today()
             if now - last_sent > cooldown:
-                self.logger.info("Sending to: " + str(key))
-                context.bot.send_message(chat_id=int(key), text=msg)
-                self.cooldowns.update({int(key): now})
+                self.logger.info("Sending to: " + str(chat_id))
+                context.bot.send_message(chat_id=chat_id, text=msg)
+                self.cooldowns.update({chat_id: now})
 
     def notify(self, update, context):
         if update.effective_user.id != self.CREATOR:
@@ -152,8 +156,20 @@ class MadriletaBot:
     def que_bueno_jose(self, update, context):
         update.effective_message.reply_text("que bueno jose")
 
+    def send_ranking(self, update, context):
+        context.bot.send_message(update.effective_chat.id, self.subscription_service.get_ranking())
+
+    def update_ranking(self, user_id, points):
+        self.subscription_service.update_ranking(user_id, points)
+
     def slots(self, update, context):
-        context.bot.send_dice(update.effective_user.id,  emoji="🎰", reply_to_message_id=update.message.message_id)
+        result = context.bot.send_dice(update.effective_chat.id,  emoji="🎰",
+                                       reply_to_message_id=update.effective_message.message_id)
+        if result.dice.value in slot_machine_value:
+            converted_results = slot_machine_value[result.dice.value]
+            self.update_ranking(update.effective_user.first_name, converted_results)
+        else:
+            self.update_ranking(update.effective_user.first_name, -10)
 
     def error(self, update, context):
         exc_info = sys.exc_info()
