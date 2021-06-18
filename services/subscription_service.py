@@ -28,5 +28,5 @@ class SubscriptionService:
         keys = self._r_conn.keys("slots:*")
         result = {}
         for key in keys:
-            chat_id = int(str(key[:6]))
+            chat_id = int(str(key[6:]))
             result[chat_id] = self._r_conn.get(key)

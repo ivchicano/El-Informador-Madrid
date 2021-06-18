@@ -44,6 +44,7 @@ class MadriletaBot:
         self.cooldowns = {}
 
         for key in self.subscription_service.get_all_users():
+            self.logger.info(str(key)[4:])
             chat_id = int(str(key)[4:])
             self.cooldowns.update({chat_id: date(1970, 1, 1)})
 
