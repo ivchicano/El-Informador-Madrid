@@ -29,5 +29,5 @@ class SubscriptionService:
         result_str = ""
         for key in keys:
             chat_id = str(key[6:])
-            result_str = result_str + chat_id + " : " + self._r_conn.get(key)
+            result_str = result_str + chat_id + " : " + self._r_conn.get(key) + "\n"
         return result_str
