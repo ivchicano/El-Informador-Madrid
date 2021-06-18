@@ -153,7 +153,7 @@ class MadriletaBot:
         update.effective_message.reply_text("que bueno jose")
 
     def slots(self, update, context):
-        context.bot.send_dice(update.effective_user.id,  emoji="🎰", reply_to_message_id=update.nessage.message_id)
+        context.bot.send_dice(update.effective_user.id,  emoji="🎰", reply_to_message_id=update.message.message_id)
 
     def error(self, update, context):
         exc_info = sys.exc_info()
