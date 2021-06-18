@@ -26,7 +26,8 @@ class SubscriptionService:
 
     def get_ranking(self):
         keys = self._r_conn.keys("slots:*")
-        result = {}
+        result_str = ""
         for key in keys:
             chat_id = int(str(key[6:]))
-            result[chat_id] = self._r_conn.get(key)
+            result_str = result_str + chat_id + " : " + self._r_conn.get(key)
+        return result_str
