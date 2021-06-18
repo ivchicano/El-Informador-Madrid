@@ -29,7 +29,7 @@ class SubscriptionService:
         result_str = ""
         result_dict = {}
         for key in keys:
-            chat_name = str(key).split()[1]
+            chat_name = str(key).split(":")[1]
             value = self._r_conn.get(key)
             result_dict[chat_name] = value
         for key, value in sorted(result_dict, key=result_dict.get, reverse=True):
