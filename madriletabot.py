@@ -158,7 +158,7 @@ class MadriletaBot:
         update.effective_message.reply_text("que bueno jose")
 
     def send_ranking(self, update, context):
-        context.bot.send_message(update.effective_chat.id, self.subscription_service.get_ranking())
+        context.bot.send_message(update.effective_chat.id, text=self.subscription_service.get_ranking())
 
     def update_ranking(self, user_id, points):
         self.subscription_service.update_ranking(user_id, points)
