@@ -1,9 +1,11 @@
 import redis
 import os
+import logging
 
 
 class SubscriptionService:
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self._r_conn = redis.from_url(os.environ.get("REDIS_URL"), charset="utf-8", decode_responses=True)
         # Check connection
         self._r_conn.ping()
@@ -32,6 +34,7 @@ class SubscriptionService:
             chat_name = str(key).split(":")[1]
             value = self._r_conn.get(key)
             result_dict[chat_name] = value
+        self.logger.info(result_dict)
         for key in sorted(result_dict.items(), key=result_dict.get):
             result_str = result_str + key + " : " + result_dict[key] + "\n"
         return result_str
