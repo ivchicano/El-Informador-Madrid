@@ -55,6 +55,7 @@ class MadriletaBot:
         dp.add_handler(CommandHandler('quien', self.who_asked))
         dp.add_handler(CommandHandler('cuando', self.when_in_my_region))
         dp.add_handler(CommandHandler('jose', self.que_bueno_jose))
+        dp.add_handler(CommandHandler('slots', self.slots))
         dp.add_error_handler(self.error)
 
     def time(self, update, context):
@@ -150,6 +151,9 @@ class MadriletaBot:
 
     def que_bueno_jose(self, update, context):
         update.effective_message.reply_text("que bueno jose")
+
+    def slots(self, update, context):
+        context.bot.send_dice(update.effective_user.id,  emoji="🎰", reply_to_message_id=update.nessage.message_id)
 
     def error(self, update, context):
         exc_info = sys.exc_info()
