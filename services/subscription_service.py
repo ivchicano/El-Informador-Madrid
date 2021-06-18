@@ -21,7 +21,7 @@ class SubscriptionService:
         return self._r_conn.get(chat_id)
 
     def update_ranking(self, user_name, user_id, points):
-        key = "slots:" + str(user_name) + ":" + user_id
+        key = "slots:" + str(user_name) + ":" + str(user_id)
         return self._r_conn.incrby(key, points)
 
     def get_ranking(self):
