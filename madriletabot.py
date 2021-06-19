@@ -49,10 +49,9 @@ def check_cd(func):
             if last_time is not None:
                 time_passed = now - last_time
                 delta_cd = timedelta(seconds=int(cd))
-                self.logger.info("User last time: " + last_time.strftime("%m/%d/%Y, %H:%M:%S")
-                                 + ". Current time: " + now.strftime("%m/%d/%Y, %H:%M:%S")
-                                 + ". Time passed: " + str(time_passed)
-                                 + ". delta_cd: " + str(delta_cd))
+                self.logger.info(
+                    "User last time: " + last_time.strftime("%m/%d/%Y, %H:%M:%S") + ". Current time: " + now.strftime(
+                        "%m/%d/%Y, %H:%M:%S") + ". Time passed: " + str(time_passed) + ". delta_cd: " + str(delta_cd))
                 if time_passed < delta_cd:
                     update.message.reply_text(
                         "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
