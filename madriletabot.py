@@ -48,7 +48,7 @@ def check_cd(func):
             self.cds_user.update({user_id: now})
             if last_time is not None:
                 time_passed = now - last_time
-                delta_cd = timedelta(seconds=cd)
+                delta_cd = timedelta(seconds=int(cd))
                 self.logger.info("User last time: " + str(last_time) + ". Current time: " + str(now) + ". Time passed: "
                                  + time_passed + ". delta_cd: " + delta_cd)
                 if time_passed < delta_cd:
