@@ -39,13 +39,16 @@ def check_cd(func):
     def wrapped(self, update, context, *args, **kwargs):
         chat_id = update.effective_chat.id
         cd = self.subscription_service.get_cooldown(chat_id)
+        self.logger.info("Checking cd: " + str(cd) + " of chat: " + str(chat_id))
         if cd is not None:
             user_id = update.effective_user.id
+            self.logger.info("User: " + str(user_id))
             last_time = self.cds_user.get(user_id)
             if last_time is not None:
                 now = datetime.now()
                 time_passed = now - last_time
                 delta_cd = timedelta(seconds=cd)
+                self.logger.info("User last time: " + str(last_time) + ". Current time: " + str(now) + ". Time passed: " + time_passed + ". delta_cd: " + delta_cd)
                 if time_passed < delta_cd:
                     update.message.reply_text(
                         "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
@@ -53,6 +56,7 @@ def check_cd(func):
             self.cds_user.update({user_id: datetime.now()})
             return
         else:
+            self.logger.info("No cd found")
             return func(self, update, context, *args, **kwargs)
 
     return wrapped
@@ -106,7 +110,6 @@ class MadriletaBot:
         dp.add_handler(CommandHandler('ranking', self.send_ranking))
         dp.add_handler(CommandHandler('setcd', self.set_cd))
         dp.add_error_handler(self.error)
-
 
     @restricted_admin
     def set_cd(self, update, context):
