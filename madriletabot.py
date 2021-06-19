@@ -50,7 +50,7 @@ def check_cd(func):
                 time_passed = now - last_time
                 delta_cd = timedelta(seconds=int(cd))
                 self.logger.info("User last time: " + str(last_time) + ". Current time: " + str(now) + ". Time passed: "
-                                 + time_passed + ". delta_cd: " + delta_cd)
+                                 + str(time_passed) + ". delta_cd: " + str(delta_cd))
                 if time_passed < delta_cd:
                     update.message.reply_text(
                         "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
