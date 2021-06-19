@@ -119,6 +119,7 @@ class MadriletaBot:
                                                 "formato usado es el adecuado (s).")
         else:
             self.subscription_service.set_cooldown(parts["seconds"])
+            update.message.reply_text("Enfriamiento configurado correctamente")
 
     @check_cd
     def time(self, update, context):
