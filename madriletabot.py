@@ -25,7 +25,7 @@ def restricted_admin(func):
         user_id = update.effective_user.id
         user_status = context.bot.get_chat_member(chat_id=chat_id, user_id=user_id)
         self.logger.info("Soliciting permission. User:" + str(user_id) + " | User status: " + user_status)
-        if (user_id != self.CREATOR) or (user_status != CHATMEMBER_CREATOR) or (
+        if (user_id != self.CREATOR) and (user_status != CHATMEMBER_CREATOR) and (
                 user_status != CHATMEMBER_ADMINISTRATOR):
             update.message.reply_text("No tienes permisos para ejecutar este comando")
             return
