@@ -23,7 +23,7 @@ def restricted_admin(func):
     def wrapped(self, update, context, *args, **kwargs):
         chat_id = update.effective_chat.id
         user_id = update.effective_user.id
-        user_status = context.bot.get_chat_member(chat_id=chat_id, user_id=user_id)
+        user_status = context.bot.get_chat_member(chat_id=chat_id, user_id=user_id).status
         self.logger.info("Soliciting permission. User:" + str(user_id) + " | User status: " + user_status)
         if (user_id != self.CREATOR) and (user_status != CHATMEMBER_CREATOR) and (
                 user_status != CHATMEMBER_ADMINISTRATOR):
