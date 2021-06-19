@@ -10,10 +10,12 @@ from utils.slots_machine_value import slot_machine_value
 from utils.weather_conversion import weather_conversions
 from telegram.utils.helpers import mention_html
 from telegram.ext import Updater, CommandHandler
+from telegram.constants import CHATMEMBER_ADMINISTRATOR, CHATMEMBER_CREATOR
 import sys
 import traceback
 import re
 from datetime import timedelta, date, datetime
+from functools import wraps
 
 
 class MadriletaBot:
@@ -41,6 +43,8 @@ class MadriletaBot:
         # Add to job queue the repeating task of checking OWM for changes in weather
         self.updater.job_queue.run_repeating(self.update_weather_job, 5, first=0)
 
+        self.cds_user = {}
+
         self.cooldowns = {}
 
         for key in self.subscription_service.get_all_users():
@@ -60,12 +64,62 @@ class MadriletaBot:
         dp.add_handler(CommandHandler('jose', self.que_bueno_jose))
         dp.add_handler(CommandHandler('slots', self.slots))
         dp.add_handler(CommandHandler('ranking', self.send_ranking))
+        dp.add_handler(CommandHandler('setcd', self.set_cd))
         dp.add_error_handler(self.error)
 
+    def restricted_admin(self, func):
+        @wraps(func)
+        def wrapped(update, context, *args, **kwargs):
+            chat_id = update.effective_chat.id
+            user_id = update.effective_user.id
+            user_status = context.bot.get_chat_member(chat_id=chat_id, user_id=user_id)
+            if (user_id != self.CREATOR) or (user_status != CHATMEMBER_CREATOR) or (
+                    user_status != CHATMEMBER_ADMINISTRATOR):
+                update.message.reply_text("No tienes permisos para ejecutar este comando")
+                return
+            return func(update, context, *args, **kwargs)
+
+        return wrapped
+
+    @restricted_admin
+    def set_cd(self, update, context):
+        cd_arg = " ".join(context.args)
+        regex = re.compile(r'(?P<seconds>\d+)')
+        parts = regex.match(cd_arg)
+        if not parts:
+            self.logger.error("ValueError when setting cd. Argument: " + cd_arg)
+            update.effective_message.reply_text("El enfriamiento enviado es incorrecto. Por favor comprueba que el "
+                                                "formato usado es el adecuado (s).")
+
+    def check_cd(self, func):
+        @wraps(func)
+        def wrapped(update, context, *args, **kwargs):
+            chat_id = update.effective_chat.id
+            cd = self.subscription_service.get_cooldown(chat_id)
+            if cd is not None:
+                user_id = update.effective_user.id
+                last_time = self.cds_user.get(user_id)
+                if last_time is not None:
+                    now = datetime.now()
+                    time_passed = now - last_time
+                    delta_cd = timedelta(seconds=cd)
+                    if time_passed < delta_cd:
+                        update.message.reply_text(
+                            "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
+                            + " s")
+                self.cds_user.update({user_id: datetime.now()})
+                return
+            else:
+                return func(update, context, *args, **kwargs)
+
+        return wrapped
+
+    @check_cd
     def time(self, update, context):
         msg = self.omw_service.get_weather()
         update.effective_message.reply_text(msg)
 
+    @check_cd
     def subscribe(self, update, context):
         time_arg = " ".join(context.args)
         regex = re.compile(r'(?P<hours>\d+) (?P<minutes>\d+) (?P<seconds>\d+)')
@@ -91,6 +145,7 @@ class MadriletaBot:
                 update.effective_message.reply_text("Te has subscrito correctamente.")
                 self.logger.info("Subscribed: " + str(update.effective_chat.id) + ", " + str(cooldown))
 
+    @check_cd
     def unsubscribe(self, update, context):
         jobs = context.job_queue.get_jobs_by_name(str(update.effective_chat.id))
         for job in jobs:
@@ -132,6 +187,7 @@ class MadriletaBot:
                 context.bot.send_message(chat_id=chat_id, text=msg)
                 self.cooldowns.update({chat_id: now})
 
+    @check_cd
     def notify(self, update, context):
         if update.effective_user.id != self.CREATOR:
             update.effective_message.reply_text("No eres el creador del bot.")
@@ -141,30 +197,36 @@ class MadriletaBot:
             for job in context.job_queue.jobs():
                 context.bot.send_message(chat_id=int(job.context), text=msg)
 
+    @check_cd
     def temperature(self, update, context):
         msg = self.omw_service.get_temperature()
         update.effective_message.reply_text(msg)
 
+    @check_cd
     def who_asked(self, update, context):
         msg = "¿Que quién me ha preguntado? ¿Y tú quién eres no name? Mantente madrileñófobo. Estás mad."
         update.effective_message.reply_text(msg)
 
+    @check_cd
     def when_in_my_region(self, update, context):
         msg = "¿Que cuándo un Informador para tu región? ¿A quién le importa tu región menor recoge patatas? Mantente " \
               "madrileñófobo. Estás mad. "
         update.effective_message.reply_text(msg)
 
+    @check_cd
     def que_bueno_jose(self, update, context):
         update.effective_message.reply_text("que bueno jose")
 
+    @check_cd
     def send_ranking(self, update, context):
         context.bot.send_message(update.effective_chat.id, text=self.subscription_service.get_ranking())
 
     def update_ranking(self, user_name, user_id, points):
         self.subscription_service.update_ranking(user_name, user_id, points)
 
+    @check_cd
     def slots(self, update, context):
-        result = context.bot.send_dice(update.effective_chat.id,  emoji="🎰",
+        result = context.bot.send_dice(update.effective_chat.id, emoji="🎰",
                                        reply_to_message_id=update.effective_message.message_id)
         if result.dice.value in slot_machine_value:
             converted_results = slot_machine_value[result.dice.value]
