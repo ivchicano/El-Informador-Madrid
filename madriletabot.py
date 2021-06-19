@@ -28,7 +28,7 @@ def restricted_admin(func):
                 user_status != CHATMEMBER_ADMINISTRATOR):
             update.message.reply_text("No tienes permisos para ejecutar este comando")
             return
-        return func(update, context, *args, **kwargs)
+        return func(self, update, context, *args, **kwargs)
 
     return wrapped
 
@@ -52,7 +52,7 @@ def check_cd(func):
             self.cds_user.update({user_id: datetime.now()})
             return
         else:
-            return func(update, context, *args, **kwargs)
+            return func(self, update, context, *args, **kwargs)
 
     return wrapped
 
