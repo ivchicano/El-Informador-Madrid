@@ -121,7 +121,7 @@ class MadriletaBot:
             update.effective_message.reply_text("El enfriamiento enviado es incorrecto. Por favor comprueba que el "
                                                 "formato usado es el adecuado (s).")
         else:
-            self.subscription_service.set_cooldown(parts["seconds"])
+            self.subscription_service.set_cooldown(update.effective_chat.id, parts["seconds"])
             update.message.reply_text("Enfriamiento configurado correctamente")
 
     @check_cd

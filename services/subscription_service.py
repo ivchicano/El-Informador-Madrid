@@ -39,8 +39,8 @@ class SubscriptionService:
             result_str = result_str + item[0] + " : " + str(item[1]) + "\n"
         return result_str
 
-    def set_cooldown(self, seconds):
-        return self._r_conn.set("cooldown:*", seconds)
+    def set_cooldown(self, chat_id, seconds):
+        return self._r_conn.set("cooldown:" + str(chat_id), seconds)
 
     def get_cooldown(self, chat_id):
         return self._r_conn.get("cooldown:" + str(chat_id))
