@@ -90,6 +90,8 @@ class MadriletaBot:
             self.logger.error("ValueError when setting cd. Argument: " + cd_arg)
             update.effective_message.reply_text("El enfriamiento enviado es incorrecto. Por favor comprueba que el "
                                                 "formato usado es el adecuado (s).")
+        else:
+            self.subscription_service.set_cooldown(parts["seconds"])
 
     def check_cd(self, func):
         @wraps(func)
