@@ -44,16 +44,21 @@ def check_cd(func):
             user_id = update.effective_user.id
             self.logger.info("User: " + str(user_id))
             last_time = self.cds_user.get(user_id)
+            now = datetime.now()
+            self.cds_user.update({user_id: now})
             if last_time is not None:
-                now = datetime.now()
                 time_passed = now - last_time
                 delta_cd = timedelta(seconds=cd)
-                self.logger.info("User last time: " + str(last_time) + ". Current time: " + str(now) + ". Time passed: " + time_passed + ". delta_cd: " + delta_cd)
+                self.logger.info("User last time: " + str(last_time) + ". Current time: " + str(now) + ". Time passed: "
+                                 + time_passed + ". delta_cd: " + delta_cd)
                 if time_passed < delta_cd:
                     update.message.reply_text(
                         "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
                         + " s")
-            self.cds_user.update({user_id: datetime.now()})
+                    return
+            else:
+                self.logger.info("No last time found, setting...")
+                return func(self, update, context, *args, **kwargs)
             return
         else:
             self.logger.info("No cd found")
