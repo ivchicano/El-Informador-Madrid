@@ -257,11 +257,15 @@ class MadriletaBot:
     def slots(self, update, context):
         result = context.bot.send_dice(update.effective_chat.id, emoji="🎰",
                                        reply_to_message_id=update.effective_message.message_id)
+        user_points = self.subscription_service.get_points(update.effective_user.id)
+        penalty = user_points * 0.1
+        if penalty > 500:
+            penalty = 500
         if result.dice.value in slot_machine_value:
             converted_results = slot_machine_value[result.dice.value]
             self.update_ranking(update.effective_user.first_name, update.effective_user.id, converted_results)
         else:
-            self.update_ranking(update.effective_user.first_name, update.effective_user.id, -10)
+            self.update_ranking(update.effective_user.first_name, update.effective_user.id, -penalty)
 
     def error(self, update, context):
         exc_info = sys.exc_info()
