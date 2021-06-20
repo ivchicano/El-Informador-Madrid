@@ -212,10 +212,12 @@ class MadriletaBot:
             now = datetime.now()
             self.logger.info(
                 "For user: " + str(chat_id) + ". Last sent: " + str(last_sent))
+            difference = now - last_sent
+            cooldown_condition = difference > cooldown
             self.logger.info(
-                "Cooldown: " + str(cooldown) + ". Difference: " + str((now - last_sent)) + ". Condition: " + str(
-                    (now - last_sent) > cooldown))
-            if (now - last_sent) > cooldown:
+                "Cooldown: " + str(cooldown) + ". Difference: " + str(difference) + ". Condition: " + str(
+                    cooldown_condition))
+            if cooldown_condition:
                 self.logger.info("Sending to: " + str(chat_id))
                 try:
                     context.bot.send_message(chat_id=chat_id, text=msg)

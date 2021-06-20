@@ -45,7 +45,7 @@ class SubscriptionService:
         return result_str
 
     def get_points(self, user_id):
-        keys = self._r_conn.keys("slots:*:" + user_id)
+        keys = self._r_conn.keys("slots:*:" + str(user_id))
         if len(keys) <= 0:
             return 0
         return self._r_conn.get(keys[0])
