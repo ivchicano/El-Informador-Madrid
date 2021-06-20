@@ -57,10 +57,12 @@ def check_cd(func):
                         "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
                         + " s")
                     return
+                else:
+                    self.logger.info("Not on cooldown, running...")
+                    return func(self, update, context, *args, **kwargs)
             else:
                 self.logger.info("No last time found, setting...")
                 return func(self, update, context, *args, **kwargs)
-            return
         else:
             self.logger.info("No cd found")
             return func(self, update, context, *args, **kwargs)
@@ -193,12 +195,16 @@ class MadriletaBot:
     def send_updates(self, context, msg):
         self.logger.info("Sending notification: " + msg)
         # TODO: Use a message queue to avoid telegram 429 errors if there are too many messages sent
-        for key in self.subscription_service.get_all_users():
+        users = self.subscription_service.get_all_users()
+        self.logger.info("Subbed: " + str(users))
+        for key in users:
             chat_id = int(str(key)[4:])
             cooldown = timedelta(seconds=float(self.subscription_service.get(key)))
             last_sent = self.cooldowns.get(chat_id, date(1970, 1, 1))
             now = datetime.today()
-            if now - last_sent > cooldown:
+            self.logger.info(
+                "For user: " + str(chat_id) + ". Cooldown: " + str(cooldown) + ". Last sent: " + str(last_sent))
+            if (now - last_sent) > cooldown:
                 self.logger.info("Sending to: " + str(chat_id))
                 context.bot.send_message(chat_id=chat_id, text=msg)
                 self.cooldowns.update({chat_id: now})
