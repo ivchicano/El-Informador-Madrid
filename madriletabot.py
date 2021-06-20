@@ -46,7 +46,6 @@ def check_cd(func):
             self.logger.info("User: " + str(user_id))
             last_time = self.cds_user.get(user_id)
             now = datetime.now()
-            self.cds_user.update({user_id: now})
             if last_time is not None:
                 time_passed = now - last_time
                 delta_cd = timedelta(seconds=int(cd))
@@ -60,9 +59,11 @@ def check_cd(func):
                     return
                 else:
                     self.logger.info("Not on cooldown, running...")
+                    self.cds_user.update({user_id: now})
                     return func(self, update, context, *args, **kwargs)
             else:
                 self.logger.info("No last time found, setting...")
+                self.cds_user.update({user_id: now})
                 return func(self, update, context, *args, **kwargs)
         else:
             self.logger.info("No cd found")
