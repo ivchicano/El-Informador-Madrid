@@ -3,6 +3,7 @@ import os
 from threading import Lock
 
 import telegram
+from telegram import TelegramError
 
 from services.omw_service import OMWService
 from services.subscription_service import SubscriptionService
@@ -216,7 +217,12 @@ class MadriletaBot:
                     (now - last_sent) > cooldown))
             if (now - last_sent) > cooldown:
                 self.logger.info("Sending to: " + str(chat_id))
-                context.bot.send_message(chat_id=chat_id, text=msg)
+                try:
+                    context.bot.send_message(chat_id=chat_id, text=msg)
+                except TelegramError as e:
+                    self.logger.error(type(e))
+                    self.logger.error(e)
+                    self.logger.error(e.args)
                 self.cooldowns.update({chat_id: now})
 
     @check_cd
