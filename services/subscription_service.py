@@ -48,7 +48,7 @@ class SubscriptionService:
         keys = self._r_conn.keys("slots:*:" + str(user_id))
         if len(keys) <= 0:
             return 0
-        return self._r_conn.get(keys[0])
+        return int(self._r_conn.get(keys[0]))
 
     def set_cooldown(self, chat_id, seconds):
         return self._r_conn.set("cooldown:" + str(chat_id), seconds)
