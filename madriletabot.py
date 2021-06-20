@@ -17,6 +17,7 @@ import traceback
 import re
 from datetime import timedelta, date, datetime
 from functools import wraps
+from math import ceil
 
 
 def restricted_admin(func):
@@ -270,7 +271,7 @@ class MadriletaBot:
         result = context.bot.send_dice(update.effective_chat.id, emoji="🎰",
                                        reply_to_message_id=update.effective_message.message_id)
         user_points = self.subscription_service.get_points(update.effective_user.id)
-        penalty = user_points * 0.1
+        penalty = int(ceil(user_points * 0.1))
         if penalty > 500:
             penalty = 500
         if result.dice.value in slot_machine_value:
