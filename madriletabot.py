@@ -117,9 +117,11 @@ class MadriletaBot:
         dp.add_handler(CommandHandler('slots', self.slots))
         dp.add_handler(CommandHandler('ranking', self.send_ranking))
         dp.add_handler(CommandHandler('setcd', self.set_cd))
+        dp.add_handler(CommandHandler('removecd', self.remove_cd))
         dp.add_error_handler(self.error)
 
     @restricted_admin
+    @check_cd
     def set_cd(self, update, context):
         cd_arg = " ".join(context.args)
         regex = re.compile(r'(?P<seconds>\d+)')
@@ -130,7 +132,12 @@ class MadriletaBot:
                                                 "formato usado es el adecuado (s).")
         else:
             self.subscription_service.set_cooldown(update.effective_chat.id, parts["seconds"])
-            update.message.reply_text("Enfriamiento configurado correctamente")
+            update.message.reply_text("Enfriamiento configurado correctamente.")
+
+    @check_cd
+    def remove_cd(self, update, context):
+        self.subscription_service.remove_cooldown(update.effective_chat.id)
+        update.effective_message.reply_text("El enfriamiento se ha eliminado correctamente.")
 
     @check_cd
     def time(self, update, context):

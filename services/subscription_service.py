@@ -44,3 +44,6 @@ class SubscriptionService:
 
     def get_cooldown(self, chat_id):
         return self._r_conn.get("cooldown:" + str(chat_id))
+
+    def remove_cooldown(self, chat_id):
+        self._r_conn.delete("cooldown:" + str(chat_id))
