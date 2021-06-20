@@ -102,7 +102,7 @@ class MadriletaBot:
         for key in self.subscription_service.get_all_users():
             self.logger.info(str(key))
             chat_id = int(str(key)[4:])
-            self.cooldowns.update({chat_id: date(1970, 1, 1)})
+            self.cooldowns.update({chat_id: datetime(1970, 1, 1)})
 
         dp = self.updater.dispatcher
         # Add handlers
@@ -164,7 +164,7 @@ class MadriletaBot:
                 self.logger.error("Cooldown lower or 0. Argument: " + time_arg)
                 update.effective_message.reply_text("Por favor introduce un valor mayor que 0.")
             else:
-                self.cooldowns.update({int(update.effective_chat.id): date(1970, 1, 1)})
+                self.cooldowns.update({int(update.effective_chat.id): datetime(1970, 1, 1)})
                 # Register in redis
                 self.subscription_service.subscribe(update.effective_chat.id, cooldown)
                 update.effective_message.reply_text("Te has subscrito correctamente.")
@@ -207,10 +207,13 @@ class MadriletaBot:
         for key in users:
             chat_id = int(str(key)[4:])
             cooldown = timedelta(seconds=float(self.subscription_service.get(key)))
-            last_sent = self.cooldowns.get(chat_id, date(1970, 1, 1))
-            now = datetime.today()
+            last_sent = self.cooldowns.get(chat_id, datetime(1970, 1, 1))
+            now = datetime.now()
             self.logger.info(
-                "For user: " + str(chat_id) + ". Cooldown: " + str(cooldown) + ". Last sent: " + str(last_sent))
+                "For user: " + str(chat_id) + ". Last sent: " + str(last_sent))
+            self.logger.info(
+                "Cooldown: " + str(cooldown) + ". Difference: " + str((now - last_sent)) + ". Condition: " + str(
+                    (now - last_sent) > cooldown))
             if (now - last_sent) > cooldown:
                 self.logger.info("Sending to: " + str(chat_id))
                 context.bot.send_message(chat_id=chat_id, text=msg)
