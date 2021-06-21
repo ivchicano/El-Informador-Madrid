@@ -31,6 +31,9 @@ class SubscriptionService:
             return self._r_conn.set(key, value + points)
         return self._r_conn.incrby(key, points)
 
+    def update_ranking_key(self, key, points):
+        return self._r_conn.incrby(key, points)
+
     def get_ranking(self):
         keys = self._r_conn.keys("slots:*")
         result_str = ""
@@ -49,6 +52,12 @@ class SubscriptionService:
         if len(keys) <= 0:
             return 0
         return int(self._r_conn.get(keys[0]))
+
+    def get_points_username(self, username):
+        keys = self._r_conn.keys("slots:" + username + ":*")
+        if len(keys) <= 0:
+            return None, None
+        return keys[0], int(self._r_conn.get(keys[0]))
 
     def set_cooldown(self, chat_id, seconds):
         return self._r_conn.set("cooldown:" + str(chat_id), seconds)

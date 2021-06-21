@@ -268,16 +268,36 @@ class MadriletaBot:
 
     @check_cd
     def slots(self, update, context):
+        if (context.args is None) or (len(context.args) <= 0):
+            self._run_slots(update, context)
+        else:
+            username_arg = " ".join(context.args)
+            user, points = self.subscription_service.get_points_username(username_arg)
+            if user is None:
+                self.logger.error("ValueError when confronting user in slots. Argument: " + username_arg)
+                update.effective_message.reply_text("El usuario indicado no existe. Por favor usa el nombre incluido "
+                                                    "en el ranking.")
+            else:
+                self._run_slots(update, context, user, points)
+
+    def _run_slots(self, update, context, confronted_user=None, confronted_user_points=None):
         result = context.bot.send_dice(update.effective_chat.id, emoji="🎰",
                                        reply_to_message_id=update.effective_message.message_id)
-        user_points = self.subscription_service.get_points(update.effective_user.id)
-        penalty = int(ceil(user_points * 0.1))
-        if penalty > 500:
-            penalty = 500
         if result.dice.value in slot_machine_value:
             converted_results = slot_machine_value[result.dice.value]
-            self.update_ranking(update.effective_user.first_name, update.effective_user.id, converted_results)
+            if confronted_user is None:
+                self.update_ranking(update.effective_user.first_name, update.effective_user.id, converted_results)
+            else:
+                # If the confronted user has less points that the converted result,
+                # it only sums and removes the remaining points to avoid negative results
+                # and is an incentive to go against high ranking users
+                if converted_results > confronted_user_points:
+                    converted_results = confronted_user_points
+                self.update_ranking(update.effective_user.first_name, update.effective_user.id, converted_results * 2)
+                self.subscription_service.update_ranking_key(confronted_user, -converted_results)
         else:
+            user_points = self.subscription_service.get_points(update.effective_user.id)
+            penalty = int(ceil(user_points * 0.05))
             self.update_ranking(update.effective_user.first_name, update.effective_user.id, -penalty)
 
     def error(self, update, context):
