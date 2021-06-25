@@ -36,6 +36,32 @@ def restricted_admin(func):
     return wrapped
 
 
+def _check_given_cd(self, update, context, cd, func, *args, **kwargs):
+    user_id = update.effective_user.id
+    self.logger.info("User: " + str(user_id))
+    last_time = self.cds_user.get(user_id)
+    now = datetime.now()
+    if last_time is not None:
+        time_passed = now - last_time
+        delta_cd = timedelta(seconds=int(cd))
+        self.logger.info(
+            "User last time: " + last_time.strftime("%m/%d/%Y, %H:%M:%S") + ". Current time: " + now.strftime(
+                "%m/%d/%Y, %H:%M:%S") + ". Time passed: " + str(time_passed) + ". delta_cd: " + str(delta_cd))
+        if time_passed < delta_cd:
+            update.message.reply_text(
+                "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
+                + " s")
+            return
+        else:
+            self.logger.info("Not on cooldown, running...")
+            self.cds_user.update({user_id: now})
+            return func(self, update, context, *args, **kwargs)
+    else:
+        self.logger.info("No last time found, setting...")
+        self.cds_user.update({user_id: now})
+        return func(self, update, context, *args, **kwargs)
+
+
 def check_cd(func):
     @wraps(func)
     def wrapped(self, update, context, *args, **kwargs):
@@ -43,33 +69,11 @@ def check_cd(func):
         cd = self.subscription_service.get_cooldown(chat_id)
         self.logger.info("Checking cd: " + str(cd) + " of chat: " + str(chat_id))
         if cd is not None:
-            user_id = update.effective_user.id
-            self.logger.info("User: " + str(user_id))
-            last_time = self.cds_user.get(user_id)
-            now = datetime.now()
-            if last_time is not None:
-                time_passed = now - last_time
-                delta_cd = timedelta(seconds=int(cd))
-                self.logger.info(
-                    "User last time: " + last_time.strftime("%m/%d/%Y, %H:%M:%S") + ". Current time: " + now.strftime(
-                        "%m/%d/%Y, %H:%M:%S") + ". Time passed: " + str(time_passed) + ". delta_cd: " + str(delta_cd))
-                if time_passed < delta_cd:
-                    update.message.reply_text(
-                        "Relaja la raja socio. Podrás mandar un comando en " + str((last_time + delta_cd) - now)
-                        + " s")
-                    return
-                else:
-                    self.logger.info("Not on cooldown, running...")
-                    self.cds_user.update({user_id: now})
-                    return func(self, update, context, *args, **kwargs)
-            else:
-                self.logger.info("No last time found, setting...")
-                self.cds_user.update({user_id: now})
-                return func(self, update, context, *args, **kwargs)
+            return _check_given_cd(self, update, context, cd, func, *args, **kwargs)
         else:
-            self.logger.info("No cd found")
-            return func(self, update, context, *args, **kwargs)
-
+            cd = 10
+            self.logger.info("No cd found, defaulting to " + str(cd))
+            return _check_given_cd(self, update, context, cd, func, *args, **kwargs)
     return wrapped
 
 
