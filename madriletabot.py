@@ -19,6 +19,8 @@ from datetime import timedelta, date, datetime
 from functools import wraps
 from math import ceil
 
+DEFAULT_CD = 10
+
 
 def restricted_admin(func):
     @wraps(func)
@@ -71,9 +73,10 @@ def check_cd(func):
         if cd is not None:
             return _check_given_cd(self, update, context, cd, func, *args, **kwargs)
         else:
-            cd = 10
+            cd = DEFAULT_CD
             self.logger.info("No cd found, defaulting to " + str(cd))
             return _check_given_cd(self, update, context, cd, func, *args, **kwargs)
+
     return wrapped
 
 
@@ -137,6 +140,11 @@ class MadriletaBot:
             self.logger.error("ValueError when setting cd. Argument: " + cd_arg)
             update.effective_message.reply_text("El enfriamiento enviado es incorrecto. Por favor comprueba que el "
                                                 "formato usado es el adecuado (s).")
+        elif int(parts["seconds"]) < DEFAULT_CD:
+            self.logger.error(
+                "ValueError when setting cd. Seconds are less than default cd (" + str(DEFAULT_CD) + "): " + cd_arg)
+            update.effective_message.reply_text("El enfriamiento enviado es incorrecto. No puedes poner un "
+                                                "enfriamiento menor de " + str(DEFAULT_CD) + " segundos.")
         else:
             self.subscription_service.set_cooldown(update.effective_chat.id, parts["seconds"])
             update.message.reply_text("Enfriamiento configurado correctamente.")
