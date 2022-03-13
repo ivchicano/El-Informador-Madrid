@@ -26,7 +26,7 @@ class SubscriptionService:
         keys = self._r_conn.keys("slots:*:" + str(user_id))
         key = "slots:" + str(user_name) + ":" + str(user_id)
         if (len(keys) > 0) and (keys[0] != key):  # user name changed and has to be updated
-            value = self._r_conn.get(keys[0])
+            value = int(self._r_conn.get(keys[0]))
             self._r_conn.delete(keys[0])
             return self._r_conn.set(key, value + points)
         return self._r_conn.incrby(key, points)
